@@ -1,11 +1,12 @@
 #include <ESPAsyncWebServer.h>
+#include<secrets.h> //to store wifi passwords before pushing on git
 #include<WiFi.h>
 
 AsyncWebServer server(80);
 const int LED = 2;
 
-const char* ssid = "iPhone";
-const char* password = "jebel123";
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASS;
 
 const char* html = R"(<!DOCTYPE html>
 <html lang="en">

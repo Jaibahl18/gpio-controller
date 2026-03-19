@@ -1,9 +1,10 @@
 #include <ESPAsyncWebServer.h>
-#include<secrets.h> //to store wifi passwords before pushing on git
+#include "secrets.h"//to store wifi passwords before pushing on git
 #include<WiFi.h>
 
 AsyncWebServer server(80);
 const int LED = 2;
+
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASS;
@@ -59,8 +60,9 @@ const char* html = R"(<!DOCTYPE html>
 </html>)";
 void setup(){
   Serial.begin(115200);
-  pinMode(LED,OUTPUT);
-  digitalWrite(LED,0);
+  ledcSetup(0, 5000, 8);
+  ledcAttachPin(LED, 0); 
+  
   
 
   WiFi.mode(WIFI_STA);
@@ -79,11 +81,19 @@ void setup(){
   });
 
   server.on("/led/on", HTTP_GET, [](AsyncWebServerRequest *request ){
-    digitalWrite(LED,HIGH);
+    ledcWrite(0,255);
+    delay(500);
+    ledcWrite(0,155);
+    delay(500);
+    ledcWrite(0,50);
+    delay(500);
+    ledcWrite(0,155);
+    delay(500);
+    ledcWrite(0,255);
     request->send(200,"text/plain","LED is ON");
   });
   server.on("/led/off",HTTP_GET,[](AsyncWebServerRequest *request){
-    digitalWrite(LED,LOW);
+    ledcWrite(0,0);
     request->send(200,"text/plain","LED is OFF");
   });
   server.begin();

@@ -4,6 +4,7 @@
 
 AsyncWebServer server(80);
 const int LED = 2;
+bool blink = false;
 
 
 const char* ssid = WIFI_SSID;
@@ -53,12 +54,14 @@ const char* html = R"(<!DOCTYPE html>
 <button id="bON">On</button>
     <button id="bOFF">Off</button>
     <input type="range" name="pwm" id="pwm" min="0" max="255">
+    <button id="blk">blink</button>
     <p id="stat">Status</p>
     </div>
 <script>
     document.getElementById("bON").addEventListener("click",function(){fetch("/led/on") .then(function(res){return res.text();}).then(function(data){document.getElementById("stat").innerText=data})});
     document.getElementById("bOFF").addEventListener("click",function(){fetch("/led/off").then(function(res){return res.text();}).then(function(data){document.getElementById("stat").innerText=data})});
     document.getElementById("pwm").addEventListener("input",function(){fetch("/led/brightness?val="+this.value)});
+    document.getElementById("blk").addEventListener("click",function(){fetch("/led/blink").then(function(){document.getElementById("stat").innerText="Blinking"})});
     
 </script>
 </body>
@@ -84,23 +87,40 @@ void setup(){
   server.on("/",HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200,"text/html",html);
   });
+
+  server.on("/led/blink",HTTP_GET,[](AsyncWebServerRequest *request){
+    blink = true;
+    request -> send(200,"text/plain","blining success");
+  });
   server.on("/led/brightness",HTTP_GET,[] (AsyncWebServerRequest *request){
     int val = request->getParam("val")->value().toInt();
+    blink = false;
     ledcWrite(0,val);
     request->send(200,"text/plain","PWM value set");
   });
 
   server.on("/led/on", HTTP_GET, [](AsyncWebServerRequest *request){
     ledcWrite(0,255);
+    blink = false;
     request->send(200,"text/plain","LED is ON");
   });
   server.on("/led/off",HTTP_GET,[](AsyncWebServerRequest *request){
+    blink = false;
     ledcWrite(0,0);
+
     request->send(200,"text/plain","LED is OFF");
+    
   });
   server.begin();
 }
 
 void loop(){
+  
+  while(blink){
+    ledcWrite(0,255);
+    delay(200);
+    ledcWrite(0,50);
+    delay(200);
+  }
 
 }

@@ -115,12 +115,14 @@ void setup(){
 }
 
 void loop(){
-  
+  unsigned long lastTime = 0;
+  bool ledState = false;
   while(blink){
-    ledcWrite(0,255);
-    delay(200);
-    ledcWrite(0,50);
-    delay(200);
+    if(millis()-lastTime>=200){
+      lastTime = millis();
+      ledState = !ledState;
+      ledcWrite(0, ledState? 0:255);
+    }
   }
 
 }

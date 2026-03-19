@@ -43,6 +43,8 @@ const char* html = R"(<!DOCTYPE html>
         color: red;
     }
 
+
+
 </style>
 
 <body>
@@ -50,11 +52,14 @@ const char* html = R"(<!DOCTYPE html>
     <div class="buttons">
 <button id="bON">On</button>
     <button id="bOFF">Off</button>
+    <input type="range" name="pwm" id="pwm" min="0" max="255">
     <p id="stat">Status</p>
     </div>
 <script>
     document.getElementById("bON").addEventListener("click",function(){fetch("/led/on") .then(function(res){return res.text();}).then(function(data){document.getElementById("stat").innerText=data})});
     document.getElementById("bOFF").addEventListener("click",function(){fetch("/led/off").then(function(res){return res.text();}).then(function(data){document.getElementById("stat").innerText=data})});
+    document.getElementById("pwm").addEventListener("input",function(){fetch("/led/brightness?val="+this.value)});
+    
 </script>
 </body>
 </html>)";
@@ -79,16 +84,13 @@ void setup(){
   server.on("/",HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200,"text/html",html);
   });
+  server.on("/led/brightness",HTTP_GET,[] (AsyncWebServerRequest *request){
+    int val = request->getParam("val")->value().toInt();
+    ledcWrite(0,val);
+    request->send(200,"text/plain","PWM value set");
+  });
 
-  server.on("/led/on", HTTP_GET, [](AsyncWebServerRequest *request ){
-    ledcWrite(0,255);
-    delay(500);
-    ledcWrite(0,155);
-    delay(500);
-    ledcWrite(0,50);
-    delay(500);
-    ledcWrite(0,155);
-    delay(500);
+  server.on("/led/on", HTTP_GET, [](AsyncWebServerRequest *request){
     ledcWrite(0,255);
     request->send(200,"text/plain","LED is ON");
   });
